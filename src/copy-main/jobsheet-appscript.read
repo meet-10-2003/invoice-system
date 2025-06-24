@@ -1,0 +1,87 @@
+function doPost(e) {
+  try {
+    const requestData = JSON.parse(e.postData.contents);
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Sheet1');
+
+    // ✅ DELETE LOGIC
+    if (requestData.action === 'delete') {
+      const { orderNumber } = requestData;
+      if (!orderNumber) {
+        return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Missing orderNumber' }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      const data = sheet.getDataRange().getValues();
+      let rowsToDelete = [];
+
+      for (let i = 1; i < data.length; i++) {
+        const currentOrderNo = String(data[i][1]).trim(); // 🧠 Column index 1 assumed to be 'Order No'
+        if (currentOrderNo === String(orderNumber).trim()) {
+          rowsToDelete.push(i + 1); // +1 for 1-based indexing
+        }
+      }
+
+      // ❗ Must sort descending to avoid shifting
+      rowsToDelete.sort((a, b) => b - a).forEach(row => sheet.deleteRow(row));
+
+      return ContentService.createTextOutput(JSON.stringify({ success: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // ✅ SAVE LOGIC
+    if (requestData.action === 'save') {
+      const { rows } = requestData;
+      if (!Array.isArray(rows)) {
+        return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Invalid rows array' }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      rows.forEach(row => {
+        sheet.appendRow([
+          row.date,
+          row.orderNumber,
+          row.clientName,
+          row.model,
+          row.vendor,
+          row.description,
+          row.price,
+          row.image,
+          row.quantity,
+          row.selected ? 'Selected' : 'Not Selected'
+        ]);
+      });
+
+      return ContentService.createTextOutput(JSON.stringify({ success: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Invalid action' }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+
+
+
+
+
+function doGet(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Sheet1");
+  const data = sheet.getDataRange().getValues();
+
+  const headers = data[0];
+  const rows = data.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((key, i) => {
+      obj[key] = row[i];
+    });
+    return obj;
+  });
+
+  return ContentService.createTextOutput(JSON.stringify(rows))
+    .setMimeType(ContentService.MimeType.JSON);
+}
