@@ -4,7 +4,7 @@ import cors from 'cors';
 const app = express();
 const PORT = 3001;
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyFMsOEmoq7UXPLUOaa05JiCAKiIvQAGqgl-O_6NHmnxNF3KPbsfj0iMlY92p6pp-ao/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-qrQ5hUIFbi92f7GIBX7BXBOTmXU1XTYkZ8vqZSLwQidtP_GjNeUdnlCa_yxPlgd4/exec';
 
 app.use(cors());
 app.use(express.json());
@@ -172,5 +172,5 @@ app.post('/notify-transition', (req, res) => {
  * ✅ Start the server
  */
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on Render at PORT ${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
