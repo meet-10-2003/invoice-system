@@ -12,7 +12,7 @@ const InvoicePage = () => {
 
   const goToJobSheetPage = async () => {
     try {
-      await fetch('http://localhost:3001/notify-transition', {
+      await fetch('https://invoice-proxy.onrender.com/notify-transition', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ page: 'job-sheet' }),

@@ -1,8 +1,8 @@
-const PROXY_URL = 'http://localhost:3001';
+const PROXY_URL = 'https://invoice-proxy.onrender.com';
 
 const saveInvoiceToSheet = async (data, sheetName = '') => {
   try {
-    const url = `http://localhost:3001/save-invoice?sheet=${encodeURIComponent(sheetName)}`;
+    const url = `${PROXY_URL}/save-invoice?sheet=${encodeURIComponent(sheetName)}`;
 
     const response = await fetch(url, {
       method: 'POST',
@@ -32,7 +32,7 @@ const deletePreviousInvoice = async (orderNo, vendor) => {
   try {
     console.log('Deleting order:', orderNo, vendor); // ✅ Fixed variable name
 
-    const response = await fetch('http://localhost:3001/delete-invoice', {
+    const response = await fetch('${PROXY_URL}/delete-invoice', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -1,5 +1,5 @@
 export default async function saveJobSheetToSheet(data) {
-    const response = await fetch('http://localhost:3001/save-job-sheet', {
+    const response = await fetch('https://invoice-proxy.onrender.com/save-job-sheet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

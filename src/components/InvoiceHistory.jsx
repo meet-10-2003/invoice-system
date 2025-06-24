@@ -59,7 +59,7 @@ const InvoiceHistory = () => {
   const [allRawData, setAllRawData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-const sheetUrl = `http://localhost:3001/get-invoices?mode=get-invoices&sheet=${encodeURIComponent(vendor)}`;
+const sheetUrl = `https://invoice-proxy.onrender.com/get-invoices?mode=get-invoices&sheet=${encodeURIComponent(vendor)}`;
 
 
 useEffect(() => {

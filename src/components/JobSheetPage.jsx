@@ -21,7 +21,7 @@ const JobSheetPage = () => {
 
     const goToInvoicePage = async () => {
         try {
-            await fetch('http://localhost:3001/notify-transition', {
+            await fetch('https://invoice-proxy.onrender.com/notify-transition', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ page: 'invoice' }),
@@ -136,7 +136,7 @@ const JobSheetPage = () => {
             // 🏃‍♂️ Run all deletions in parallel
             await Promise.all(
                 uniqueVendors.map((vendor) =>
-                    fetch('http://localhost:3001/delete-job-sheet', {
+                    fetch('https://invoice-proxy.onrender.com/delete-job-sheet', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ orderNumber, vendor }),

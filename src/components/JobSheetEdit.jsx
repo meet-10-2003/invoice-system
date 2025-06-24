@@ -63,7 +63,7 @@ const JobSheetEdit = () => {
                 action: "delete"
             };
 
-            await fetch('http://localhost:3001/delete-job-sheet', {
+            await fetch('https://invoice-proxy.onrender.com/delete-job-sheet', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(deletePayload),
@@ -89,7 +89,7 @@ const JobSheetEdit = () => {
                 }))
             };
 
-            const saveRes = await fetch('http://localhost:3001/save-job-sheet', {
+            const saveRes = await fetch('https://invoice-proxy.onrender.com/save-job-sheet', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(savePayload),
