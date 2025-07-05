@@ -4,9 +4,20 @@ import cors from 'cors';
 const app = express();
 const PORT = 3001;
 
+const FRONTEND_ORIGIN = 'https://invoice-system-git-main-manmeets-projects-6bb6de10.vercel.app';
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-qrQ5hUIFbi92f7GIBX7BXBOTmXU1XTYkZ8vqZSLwQidtP_GjNeUdnlCa_yxPlgd4/exec';
+const JOB_SHEET_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx1u6Z2lLkJoUo8HlVAKrbBK197VO-W-uSohS7hFShY_UBFZK5Fcu3P7qja-rUf8b4/exec';
 
-app.use(cors());
+// ✅ Enable CORS with specific origin and methods
+app.use(cors({
+  origin: FRONTEND_ORIGIN,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true
+}));
+
+// ✅ Handle OPTIONS preflight explicitly for notify-transition
+app.options('/notify-transition', cors());
+
 app.use(express.json());
 
 /**
@@ -32,7 +43,7 @@ app.post('/save-invoice', async (req, res) => {
 });
 
 /**
- * ✅ Get invoices from Google Sheet (🛠️ FIXED: added `mode=get-invoices`)
+ * ✅ Get invoices from Google Sheet
  */
 app.get('/get-invoices', async (req, res) => {
   const sheet = req.query.sheet;
@@ -57,7 +68,7 @@ app.get('/get-invoices', async (req, res) => {
 });
 
 /**
- * ✅ Delete previous invoice (used in "Save Again")
+ * ✅ Delete invoice
  */
 app.post('/delete-invoice', async (req, res) => {
   const { orderNo, vendor } = req.body;
@@ -83,16 +94,9 @@ app.post('/delete-invoice', async (req, res) => {
   }
 });
 
-
-
-
-
-
 /**
- * ✅ Save job sheet data to Google Sheet
+ * ✅ Save job sheet
  */
-const JOB_SHEET_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx1u6Z2lLkJoUo8HlVAKrbBK197VO-W-uSohS7hFShY_UBFZK5Fcu3P7qja-rUf8b4/exec';
-
 app.post('/save-job-sheet', async (req, res) => {
   try {
     const { rows } = req.body;
@@ -117,11 +121,8 @@ app.post('/save-job-sheet', async (req, res) => {
   }
 });
 
-
-
-
 /**
- * ✅ Delete previous job sheet rows (used before overwrite)
+ * ✅ Delete job sheet
  */
 app.post('/delete-job-sheet', async (req, res) => {
   try {
@@ -148,12 +149,9 @@ app.post('/delete-job-sheet', async (req, res) => {
   }
 });
 
-
-
-
-
-
-
+/**
+ * ✅ Notify transition (CORS handled)
+ */
 app.post('/notify-transition', (req, res) => {
   const { page } = req.body;
   if (page === 'invoice') {
@@ -163,10 +161,6 @@ app.post('/notify-transition', (req, res) => {
   }
   res.json({ success: true });
 });
-
-
-
-
 
 /**
  * ✅ Start the server
