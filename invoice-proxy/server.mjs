@@ -9,7 +9,9 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3j7JF8tSVzLKi5lorb
 app.use(cors({
   origin: 'https://invoice-system-mu.vercel.app',
   methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
 }));
+
 app.use(express.json());
 
 /**
