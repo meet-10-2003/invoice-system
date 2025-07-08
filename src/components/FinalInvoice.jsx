@@ -21,6 +21,22 @@ const FinalInvoice = () => {
   });
 
 
+  const [prevOrderDate, setPrevOrderDate] = useState('');
+  const [prevOrderAmountPaid, setPrevOrderAmountPaid] = useState('');
+  const [prevOrderNumber, setPrevOrderNumber] = useState('');
+
+
+
+  useEffect(() => {
+    if (!prevOrderNumber) {
+      setPrevOrderNumber(sessionStorage.getItem(`prevOrderNo-${vendor}-${orderNumber}`) || '');
+      setPrevOrderDate(sessionStorage.getItem(`prevOrderDate-${vendor}-${orderNumber}`) || '');
+      setPrevOrderAmountPaid(sessionStorage.getItem(`prevOrderPaid-${vendor}-${orderNumber}`) || '');
+    }
+  }, [vendor, orderNumber]);
+
+
+
   const delayKey = `delayShown-${vendor}-${orderNumber}`;
   const [showPrevBalanceValue, setShowPrevBalanceValue] = useState(() =>
     sessionStorage.getItem(delayKey) === 'true'
@@ -35,42 +51,42 @@ const FinalInvoice = () => {
 
 
 
-const Modal = ({ title, message, onClose }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const Modal = ({ title, message, onClose }) => {
+    const [isLoading, setIsLoading] = useState(false);
 
-  const handleOkClick = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      onClose();
-    }, 700);
-  };
+    const handleOkClick = () => {
+      setIsLoading(true);
+      setTimeout(() => {
+        setIsLoading(false);
+        onClose();
+      }, 700);
+    };
 
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-zinc-200 p-6 rounded-lg shadow-lg w-[520px] mx-auto">
-        <h2 className="text-xl uppercase font-bold mb-3 text-center">{title}</h2>
-        <p className="mb-4 text-center">{message}</p>
-        <div className="flex justify-end">
-          <button
-            onClick={handleOkClick}
-            disabled={isLoading}
-            className={`px-6 py-2 w-20 h-10 cursor-pointer rounded font-semibold flex items-center justify-center
+    return (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-zinc-200 p-6 rounded-lg shadow-lg w-[520px] mx-auto">
+          <h2 className="text-xl uppercase font-bold mb-3 text-center">{title}</h2>
+          <p className="mb-4 text-center">{message}</p>
+          <div className="flex justify-end">
+            <button
+              onClick={handleOkClick}
+              disabled={isLoading}
+              className={`px-6 py-2 w-20 h-10 cursor-pointer rounded font-semibold flex items-center justify-center
               ${isLoading ? 'bg-blue-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
-          >
-            {isLoading ? (
-              <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-              </svg>
-            ) : null}
-            {isLoading ? '' : 'OK'}
-          </button>
+            >
+              {isLoading ? (
+                <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+              ) : null}
+              {isLoading ? '' : 'OK'}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 
 
@@ -115,30 +131,24 @@ const Modal = ({ title, message, onClose }) => {
   const isSeatVendor = ['x - sofa worker', 'y - sofa worker'].includes(vendor?.toLowerCase());
   const unitLabel = isMeterVendor ? ' (meters)' : isSeatVendor ? ' (seats)' : '';
 
-  const formatDate = (value) => {
-    if (typeof value === 'number') {
-      const utc_days = Math.floor(value - 25569);
-      const utc_value = utc_days * 86400;
-      return new Date(utc_value * 1000).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-    if (value instanceof Date) {
-      return value.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-    return value;
-  };
+const formatDate = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return String(value); // fallback
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
 
   const formatTime = (value) => {
-    if (typeof value === 'number') {
-      const totalSeconds = Math.round(value * 86400);
-      const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-      const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-      return `${hours}:${minutes}`;
-    }
-    if (value instanceof Date) {
-      return value.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-    }
-    return value;
+    if (!value) return '';
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
   };
+
 
 
 
@@ -205,7 +215,22 @@ const Modal = ({ title, message, onClose }) => {
           sessionStorage.setItem(`prevBalance-${vendor}-${orderNumber}`, carry);
 
           console.log(`💰 Carry Forward from ${previousOrder["Order No"]}: ₹${carry}`);
+
+
+
+          setPrevOrderDate(previousOrder["Date"] || '');
+          setPrevOrderAmountPaid(previousOrder["Amount Paid"] || '');
+          setPrevOrderNumber(previousOrder["Order No"] || '');
+
+          sessionStorage.setItem(`prevOrderDate-${vendor}-${orderNumber}`, previousOrder["Date"] || '');
+          sessionStorage.setItem(`prevOrderPaid-${vendor}-${orderNumber}`, previousOrder["Amount Paid"] || '');
+          sessionStorage.setItem(`prevOrderNo-${vendor}-${orderNumber}`, previousOrder["Order No"] || '');
+
         } else {
+          setPrevOrderDate(sessionStorage.getItem(`prevOrderDate-${vendor}-${orderNumber}`) || '');
+          setPrevOrderAmountPaid(sessionStorage.getItem(`prevOrderPaid-${vendor}-${orderNumber}`) || '');
+          setPrevOrderNumber(sessionStorage.getItem(`prevOrderNo-${vendor}-${orderNumber}`) || '');
+
           console.log("❗ No previous order found.");
           setPreviousBalance("0.00");
         }
@@ -544,7 +569,7 @@ const Modal = ({ title, message, onClose }) => {
                     <img src={row.image} alt={row.model} className="w-24 h-24 object-contain transform transition-all duration-500 scale-[0.9] hover:scale-[1.1] z-10 cursor-pointer" />
                   )}
                 </td>
-                <td className="px-4 py-2 font-[700] text-lg">{row.date}</td>
+                <td className="px-4 py-2 font-[700] text-lg">{formatDate(row.date)}</td>  
                 <td className="px-4 py-2 font-[700] text-lg">{row.clientName}</td>
                 <td className="px-4 py-2 font-[700] text-lg">{row.challan}</td>
                 <td className="px-4 py-2 font-[700] text-lg">{row.totalQuantity}</td>
@@ -645,6 +670,29 @@ const Modal = ({ title, message, onClose }) => {
           <span>₹{carryForwardAmount}</span>
           <span className='h-[2px] bottom-[100%] right-0 w-full bg-blue-700 absolute'></span>
         </div>
+
+
+        {/* 🟩 ADDED: Previous Order Summary Section */}
+        {prevOrderNumber && (
+          <div className=" relative space-y-2 text-sm rounded pt-3">
+            <div className="flex justify-between">
+              <span className="font-semibold">Previous Order No:</span>
+              <span className='font-semibold'>{prevOrderNumber}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-semibold">Previous Order Date:</span>
+              <span className='font-semibold'>{formatDate(prevOrderDate)}</span>
+              {/* <span>{formatTime(prevOrderDate)}</span> */}
+            </div>
+            <div className="flex justify-between">
+              <span className="font-semibold">Previous Amount Paid:</span>
+              <span className='font-semibold'>₹{prevOrderAmountPaid}</span>
+            </div>
+
+            <span className='h-[2px] bottom-[100%] right-0 w-full bg-blue-700 absolute'></span>
+          </div>
+        )}
+
 
       </div>
 
