@@ -6,7 +6,10 @@ const PORT = 3001;
 
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3j7JF8tSVzLKi5lorbaU9yO-jf9UbTtCyuJ_urzNEwsBOmsdf42Rs8n2JcfVx19uy/exec';
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://invoice-system-mu.vercel.app',
+  methods: ['GET', 'POST'],
+}));
 app.use(express.json());
 
 /**
