@@ -10,6 +10,7 @@ import JobSheetPage from './components/JobSheetPage';
 import JobSheetHistory from './components/JobSheetHistory';
 import JobSheetEdit from './components/JobSheetEdit'; // Adjust the path as needed
 import GeneratePI from './components/GeneratePI';
+import FrontPage from './components/FrontPage'; // ✅ Import it
 
 
 
@@ -19,7 +20,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
+        <Route path="/" element={<FrontPage />} />
+        <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
 
         <Route
           path="/invoice"

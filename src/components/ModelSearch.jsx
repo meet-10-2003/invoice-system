@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import fetchFromSheet from './utils/fetchFromSheet';
 
 const ModelSearch = ({ vendor, onSelect, value = '', selectedModels = [] }) => {
@@ -7,6 +7,8 @@ const ModelSearch = ({ vendor, onSelect, value = '', selectedModels = [] }) => {
   const [filteredModels, setFilteredModels] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+
+  const itemRefs = useRef([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -20,22 +22,21 @@ const ModelSearch = ({ vendor, onSelect, value = '', selectedModels = [] }) => {
     setQuery(value || '');
   }, [value]);
 
-const handleInputChange = (e) => {
-  const input = e.target.value;
-  setQuery(input);
-  setShowSuggestions(true);
-  setSelectedIndex(-1);
+  const handleInputChange = (e) => {
+    const input = e.target.value;
+    setQuery(input);
+    setShowSuggestions(true);
+    setSelectedIndex(-1);
 
-  const normalize = (str) => str.toLowerCase().replace(/[\s_-]+/g, '');
+    const normalize = (str) => str.toLowerCase().replace(/[\s_-]+/g, '');
 
-  const filtered = allProducts.filter(
-    (item) =>
-      normalize(item.vendor) === normalize(vendor) &&
-      item.name.toLowerCase().includes(input.toLowerCase())
-  );
-  setFilteredModels(filtered);
-};
-
+    const filtered = allProducts.filter(
+      (item) =>
+        normalize(item.vendor) === normalize(vendor) &&
+        item.name.toLowerCase().includes(input.toLowerCase())
+    );
+    setFilteredModels(filtered);
+  };
 
   const handleSelect = (model) => {
     setQuery(model.name);
@@ -45,50 +46,56 @@ const handleInputChange = (e) => {
 
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowDown') {
+      e.preventDefault();
       setSelectedIndex((prev) => Math.min(prev + 1, filteredModels.length - 1));
     } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
       setSelectedIndex((prev) => Math.max(prev - 1, 0));
     } else if (e.key === 'Enter') {
+      e.preventDefault();
       if (selectedIndex >= 0 && filteredModels[selectedIndex]) {
         handleSelect(filteredModels[selectedIndex]);
       }
     }
   };
 
+  // Scroll the selected item into view
+  useEffect(() => {
+    if (selectedIndex >= 0 && itemRefs.current[selectedIndex]) {
+      itemRefs.current[selectedIndex].scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }
+  }, [selectedIndex]);
+
+  useEffect(() => {
+    itemRefs.current = itemRefs.current.slice(0, filteredModels.length);
+  }, [filteredModels]);
+
   return (
-    <div className="relative">
+    <div className="relative ">
       <input
         type="text"
         placeholder="Search Model"
-        className="border px-2 py-1 rounded w-full"
+        className="border cursor-pointer px-2 py-1 rounded w-full uppercase placeholder:capitalize placeholder:font-[600] font-[600] border-gray-300 outline-gray-500"
         value={query}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
       />
+
       {showSuggestions && query && filteredModels.length > 0 && (
-        <ul className="absolute top-[100%] left-0 z-[999] bg-white border w-full h-auto mt-1 shadow rounded">
+        <ul className="absolute model-search-main top-[100%] left-0 z-[10] border w-full mt-1 shadow rounded overflow-y-auto h-40">
           {filteredModels.map((model, index) => (
             <li
               key={index}
-              className={`flex justify-between items-center px-4 py-2 cursor-pointer hover:bg-gray-100 ${
-                selectedIndex === index ? 'bg-blue-100' : ''
+              ref={(el) => (itemRefs.current[index] = el)}
+              className={`flex justify-between items-center model-search text-[11px] px-2 py-2 cursor-pointer font-[600] uppercase transition-all duration-300 ${
+                selectedIndex === index ? 'model-search-key text-white ml-[2px]' : ''
               }`}
+              onMouseDown={() => handleSelect(model)}
             >
-              <span
-                className="flex-1"
-                onClick={() => handleSelect(model)}
-              >
-                {model.name}
-              </span>
-              <button
-                className="ml-2 text-blue-600 hover:underline text-sm"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleSelect(model);
-                }}
-              >
-                Select
-              </button>
+              <span className="flex-1">{model.name}</span>
             </li>
           ))}
         </ul>

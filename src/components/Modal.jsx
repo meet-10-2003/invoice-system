@@ -15,7 +15,7 @@ const modal = ({ title, message1, message2, onClose }) => {
           onClick={onClose}
           className="w-full text-white flex justify-end"
         >
-            <span className='bg-red-500 px-6 py-2 rounded-xl hover:bg-red-600 transition-all duration-300 cursor-pointer font-[600] tracking-tight'>Close</span>
+            <span className='bg-red-500 px-6 py-2 rounded hover:bg-red-600 transition-all duration-300 cursor-pointer font-[600] tracking-tight uppercase'>Close</span>
           
         </button>
       </div>

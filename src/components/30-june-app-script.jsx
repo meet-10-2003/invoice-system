@@ -1,0 +1,121 @@
+function doPost(e) {
+  try {
+    const sheetName = e.parameter.sheet || 'Sheet1';
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(sheetName);
+    const data = JSON.parse(e.postData.contents).data;
+
+    if (!data || data.length === 0) throw new Error("No data provided");
+
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const allRows = sheet.getDataRange().getValues();
+    const orderNo = data[0]["Order No"];
+    const vendorName = data[0]["Vendor"];
+
+    // 🔄 Overwrite logic: delete all rows with matching Order No AND Vendor
+    for (let i = allRows.length - 1; i > 0; i--) {
+      const row = allRows[i];
+      const currentOrderNo = String(row[headers.indexOf("Order No")]).trim();
+      const currentVendor = String(row[headers.indexOf("Vendor")]).trim().toLowerCase();
+
+      if (
+        currentOrderNo === String(orderNo).trim() &&
+        currentVendor === String(vendorName).trim().toLowerCase()
+      ) {
+        sheet.deleteRow(i + 1); // +1 for 1-based indexing in Sheets
+      }
+    }
+
+    // ➕ Append new rows
+    data.forEach(row => {
+      const rowData = headers.map(header => row[header] ?? '');
+      sheet.appendRow(rowData);
+    });
+
+    return ContentService.createTextOutput(JSON.stringify({ status: 'success' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: error.message
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+
+function doGet(e) {
+  const mode = e.parameter.mode;
+
+  // ✅ DELETE MODE: Remove all rows for a given Order No + Vendor
+  if (mode === 'delete') {
+    const orderNo = e.parameter["Order No"];
+    const vendor = e.parameter.vendor;
+
+    if (!orderNo || !vendor) {
+      return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Missing orderNo or vendor" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(vendor);
+    if (!sheet) {
+      return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Sheet not found" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const orderIndex = headers.indexOf("Order No");
+    const vendorIndex = headers.indexOf("Vendor");
+
+    if (orderIndex === -1 || vendorIndex === -1) {
+      return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Headers not found" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    let deletedCount = 0;
+
+    for (let i = data.length - 1; i > 0; i--) {
+      const rowOrder = String(data[i][orderIndex]).trim();
+      const rowVendor = String(data[i][vendorIndex]).trim().toLowerCase();
+      if (
+        rowOrder === String(orderNo).trim() &&
+        rowVendor === vendor.trim().toLowerCase()
+      ) {
+        sheet.deleteRow(i + 1);
+        deletedCount++;
+      }
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({ success: true, rowsDeleted: deletedCount }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // ✅ GET-INVOICES MODE: Return all data from the sheet
+  if (mode === 'get-invoices') {
+    const sheetName = e.parameter.sheet || 'Sheet1';
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+
+    if (!sheet) {
+      return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Sheet not found" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data.shift(); // remove header row
+
+    const jsonData = data.map(row => {
+      const rowObj = {};
+      headers.forEach((header, index) => {
+        rowObj[header] = row[index];
+      });
+      return rowObj;
+    });
+
+    return ContentService.createTextOutput(JSON.stringify(jsonData))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // ❌ Fallback: Invalid mode
+  return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Invalid mode" }))
+    .setMimeType(ContentService.MimeType.JSON);
+}

@@ -32,7 +32,7 @@ const deletePreviousInvoice = async (orderNo, vendor) => {
   try {
     console.log('Deleting order:', orderNo, vendor); // ✅ Fixed variable name
 
-    const response = await fetch(`${PROXY_URL}/delete-invoice`, {
+    const response = await fetch('https://invoice-proxy.onrender.com/delete-invoice', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

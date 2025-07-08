@@ -28,14 +28,15 @@ const Login = ({ setIsLoggedIn }) => {
     localStorage.setItem('isAuthenticated', 'true');
     localStorage.removeItem('invoiceProducts'); // ✅ clear old data
     setIsLoggedIn(true);
-    navigate('/job-sheet');
+    // navigate('/job-sheet');
+    navigate('/invoice');
     setIsLoggingIn(false); // stop spinner
   }, 1000);
 };
 
 
   return (
-    <div className="h-screen items-center bg-gradient-to-tr from-blue-500 via-pink-500 to-purple-600">
+    <div className="h-screen items-center bg-gradient-to-tr from-red-900 via-rose-700 to-red-400">
       <aside className='flex h-screen items-center justify-center'>
         <div className='flex items-center gap-28 bg-gray-100 px-8 py-12 rounded-2xl'>
 
@@ -91,7 +92,7 @@ const Login = ({ setIsLoggedIn }) => {
 
               <button
                 type="submit"
-                className="w-full tracking-tight font-[600] bg-green-500 cursor-pointer text-white py-2 rounded-[50px] transition-all duration-300 hover:bg-green-700"
+                className="w-full tracking-tight uppercase font-[700] bg-green-600 cursor-pointer text-white py-2 rounded-[50px] transition-all duration-300 hover:bg-green-700"
               >
                 Login
               </button>
@@ -108,7 +109,7 @@ const Login = ({ setIsLoggedIn }) => {
 
             {isLoggingIn && (
               <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                <div className="w-12 h-12 border-4 border-white border-t-blue-500 rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-zinc-200 border-t-red-500 rounded-full animate-spin"></div>
               </div>
             )}
           </div>
