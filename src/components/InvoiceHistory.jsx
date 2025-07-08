@@ -174,7 +174,7 @@ const InvoiceHistory = () => {
                 {group.products.map((item, i) => (
                   <tr key={i} className="border-t">
                     <td className="px-4 py-2 font-[700] text-lg tracking-tight heading-2 uppercase max-w-[230px]">{item.Model}</td>
-                    <td className="px-4 py-2">
+                    <td className="px-0 py-2">
                       {item.Image ? (
                         <img
                           src={item.Image}
