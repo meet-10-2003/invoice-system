@@ -179,7 +179,7 @@ const InvoiceHistory = () => {
                         <img
                           src={item.Image}
                           alt="model"
-                          className="h-24 w-24 object-cover transform transition-all duration-500 scale-[0.9] hover:scale-[1.0] z-10 cursor-pointer"
+                          className="h-24 w-24 object-contain transform transition-all duration-500 scale-[0.9] hover:scale-[1.0] z-10 cursor-pointer"
                         />
                       ) : (
                         'N/A'

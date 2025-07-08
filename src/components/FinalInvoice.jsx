@@ -541,7 +541,7 @@ const Modal = ({ title, message, onClose }) => {
                 <td className="px-4 py-2 font-[700] text-lg tracking-tight heading-2 uppercase max-w-[150px]">{row.model}</td>
                 <td className="px-4 py-2">
                   {row.image && (
-                    <img src={row.image} alt={row.model} className="w-24 h-24 object-cover transform transition-all duration-500 scale-[0.9] hover:scale-[1.1] z-10 cursor-pointer" />
+                    <img src={row.image} alt={row.model} className="w-24 h-24 object-contain transform transition-all duration-500 scale-[0.9] hover:scale-[1.1] z-10 cursor-pointer" />
                   )}
                 </td>
                 <td className="px-4 py-2 font-[700] text-lg">{row.date}</td>
