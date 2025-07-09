@@ -745,6 +745,79 @@ useEffect(() => {
         />
       )}
 
+
+
+      {previousInvoiceRows.length > 0 && (
+  <div className="mt-10 border-t pt-6">
+    <h2 className="text-xl font-bold uppercase mb-4 text-style heading-2">
+      Previous Order of {vendor} ({prevOrderNumber})
+    </h2>
+
+    {/* 🟦 Added Summary Section */}
+
+      <div className="bg-gray-100 rounded mt-4 shadow-sm max-w-md ml-auto px-4 py-3 mb-6 text-sm space-y-2 font-semibold">
+      <div className="flex justify-between">
+        <span>Sub Total</span>
+        <span>₹{parseFloat(prevSubTotal || 0).toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span>Cartage</span>
+        <span>₹{parseFloat(prevCartage || 0).toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span>Previous Balance</span>
+        <span>₹{parseFloat(prevPrevBalance || 0).toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span>Grand Total</span>
+        <span>₹{parseFloat(prevGrandTotal || 0).toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span>Amount Paid</span>
+        <span>₹{parseFloat(prevAmountPaid || 0).toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between text-blue-700">
+        <span>Carry Forward Amount</span>
+        <span>₹{parseFloat(prevCarryForward || 0).toFixed(2)}</span>
+      </div>
+    </div>
+    
+
+    {/* Table */}
+    <table className="min-w-full border shadow-md rounded table-style">
+      <thead className="bg-gray-700 text-white">
+        <tr>
+          {['Model', 'Image', 'Client Name', 'Challan No', 'Qty Ordered', 'Qty Received', 'Price', 'Total'].map((head) => (
+            <th key={head} className="px-4 py-2 text-left text-md">{head}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {previousInvoiceRows.map((item, index) => (
+          <tr key={index} className="border-t text-sm">
+            <td className="px-4 py-2 font-semibold uppercase">{item.Model}</td>
+            <td className="px-4 py-2">
+              {item.Image ? (
+                <img src={item.Image} alt="model" className="h-16 w-16 object-contain" />
+              ) : 'N/A'}
+            </td>
+            <td className="px-4 py-2">{item["Client Name"]}</td>
+            <td className="px-4 py-2">{item["Challan No"]}</td>
+            <td className="px-4 py-2">{item["Qty Ordered"]}</td>
+            <td className="px-4 py-2">{item["Qty Received"]}</td>
+            <td className="px-4 py-2">₹{item.Price}</td>
+            <td className="px-4 py-2">₹{item.Total}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+
+
+
+  </div>
+)}  
+
     </div>
 
     // hello manmeet
