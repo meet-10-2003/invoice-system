@@ -4,7 +4,7 @@ import cors from 'cors';
 const app = express();
 const PORT = 3001;
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyFMsOEmoq7UXPLUOaa05JiCAKiIvQAGqgl-O_6NHmnxNF3KPbsfj0iMlY92p6pp-ao/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3j7JF8tSVzLKi5lorbaU9yO-jf9UbTtCyuJ_urzNEwsBOmsdf42Rs8n2JcfVx19uy/exec';
 
 app.use(cors());
 
@@ -97,10 +97,6 @@ app.post('/delete-invoice', async (req, res) => {
 
 
 
-
-
-
-
 /**
  * ✅ Get next order number for a vendor
  */
@@ -138,6 +134,10 @@ app.get('/last-order-number', async (req, res) => {
     res.status(500).json({ nextOrderNo: '' });
   }
 });
+
+
+
+
 
 
 
@@ -231,38 +231,3 @@ app.post('/notify-transition', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running at https://invoice-proxy.onrender.com`);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
