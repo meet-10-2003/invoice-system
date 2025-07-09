@@ -175,78 +175,118 @@ const formatDate = (value) => {
   }, [vendor, rows, orderNumber, storageKey]);
 
 
+const [isPreviousFetched, setIsPreviousFetched] = useState(false);
 
 
-  useEffect(() => {
-    const fetchPreviousCarryForward = async () => {
-      try {
-        const res = await fetch(`https://invoice-proxy.onrender.com/get-invoices?sheet=${encodeURIComponent(vendor)}`);
-        const data = await res.json();
+useEffect(() => {
+  const fetchPreviousCarryForward = async () => {
+    try {
+      const res = await fetch(`http://localhost:3001/get-invoices?sheet=${encodeURIComponent(vendor)}`);
+      const data = await res.json();
 
-        const allRows = Array.isArray(data)
-          ? data
-          : Array.isArray(data.invoices)
-            ? data.invoices
-            : [];
+      const allRows = Array.isArray(data)
+        ? data
+        : Array.isArray(data.invoices)
+          ? data.invoices
+          : [];
 
-        const currentOrderNum = extractOrderNumber(String(orderNumber));
-        if (isNaN(currentOrderNum)) {
-          console.log("❗ Couldn't extract valid order number from:", orderNumber);
-          return;
-        }
-
-        const previousOrderNum = currentOrderNum - 1;
-        const orderPrefix = String(orderNumber).replace(/[-\s]*\d+$/, '').trim();
-
-        const previousOrder = allRows.find(r => {
-          const rOrder = String(r?.["Order No"] || '');
-          const rNum = extractOrderNumber(rOrder);
-          const rPrefix = rOrder.replace(/[-\s]*\d+$/, '').trim();
-
-          return rNum === previousOrderNum && rPrefix === orderPrefix;
-        });
-
-        if (previousOrder) {
-          const grandTotal = parseFloat(previousOrder["Grand Total"]) || 0;
-          const paid = parseFloat(previousOrder["Amount Paid"]) || 0;
-          const carry = (grandTotal - paid).toFixed(2);
-
-          setPreviousBalance(carry);
-          sessionStorage.setItem(`prevBalance-${vendor}-${orderNumber}`, carry);
-
-          console.log(`💰 Carry Forward from ${previousOrder["Order No"]}: ₹${carry}`);
-
-
-
-          setPrevOrderDate(previousOrder["Date"] || '');
-          setPrevOrderAmountPaid(previousOrder["Amount Paid"] || '');
-          setPrevOrderNumber(previousOrder["Order No"] || '');
-
-          sessionStorage.setItem(`prevOrderDate-${vendor}-${orderNumber}`, previousOrder["Date"] || '');
-          sessionStorage.setItem(`prevOrderPaid-${vendor}-${orderNumber}`, previousOrder["Amount Paid"] || '');
-          sessionStorage.setItem(`prevOrderNo-${vendor}-${orderNumber}`, previousOrder["Order No"] || '');
-
-        } else {
-          setPrevOrderDate(sessionStorage.getItem(`prevOrderDate-${vendor}-${orderNumber}`) || '');
-          setPrevOrderAmountPaid(sessionStorage.getItem(`prevOrderPaid-${vendor}-${orderNumber}`) || '');
-          setPrevOrderNumber(sessionStorage.getItem(`prevOrderNo-${vendor}-${orderNumber}`) || '');
-
-          console.log("❗ No previous order found.");
-          setPreviousBalance("0.00");
-        }
-      } catch (err) {
-        console.error("❌ Carry Forward Fetch Error:", err);
+      const currentOrderNum = extractOrderNumber(String(orderNumber));
+      if (isNaN(currentOrderNum)) {
+        console.log("❗ Couldn't extract valid order number from:", orderNumber);
+        return;
       }
-    };
 
-    if (vendor && orderNumber && !sessionStorage.getItem(`prevBalance-${vendor}-${orderNumber}`)) {
-      fetchPreviousCarryForward();
-    } else {
-      setPreviousBalance(sessionStorage.getItem(`prevBalance-${vendor}-${orderNumber}`) || "0.00");
+      const previousOrderNum = currentOrderNum - 1;
+      const orderPrefix = String(orderNumber).replace(/[-\s]*\d+$/, '').trim();
+
+      const previousOrderRows = allRows.filter(r => {
+        const rOrder = String(r?.["Order No"] || '');
+        const rNum = extractOrderNumber(rOrder);
+        const rPrefix = rOrder.replace(/[-\s]*\d+$/, '').trim();
+        return rNum === previousOrderNum && rPrefix === orderPrefix;
+      });
+
+      setPreviousInvoiceRows(previousOrderRows);
+      sessionStorage.setItem(`prevRows-${vendor}-${orderNumber}`, JSON.stringify(previousOrderRows));
+
+      const lastRow = previousOrderRows[previousOrderRows.length - 1];
+
+      if (lastRow) {
+        const grandTotal = parseFloat(lastRow["Grand Total"]) || 0;
+        const paid = parseFloat(lastRow["Amount Paid"]) || 0;
+        const carry = (grandTotal - paid).toFixed(2);
+
+        // Save all summary
+        sessionStorage.setItem(`prevBalance-${vendor}-${orderNumber}`, carry);
+        sessionStorage.setItem(`prevOrderDate-${vendor}-${orderNumber}`, lastRow["Date"] || '');
+        sessionStorage.setItem(`prevOrderPaid-${vendor}-${orderNumber}`, lastRow["Amount Paid"] || '');
+        sessionStorage.setItem(`prevOrderNo-${vendor}-${orderNumber}`, lastRow["Order No"] || '');
+
+        sessionStorage.setItem(`prevSubTotal-${vendor}-${orderNumber}`, lastRow["Subtotal"] || '');
+        sessionStorage.setItem(`prevCartage-${vendor}-${orderNumber}`, lastRow["Cartage"] || '');
+        sessionStorage.setItem(`prevPrevBalance-${vendor}-${orderNumber}`, lastRow["Prev Balance"] || '');
+        sessionStorage.setItem(`prevGrandTotal-${vendor}-${orderNumber}`, lastRow["Grand Total"] || '');
+        sessionStorage.setItem(`prevAmountPaid-${vendor}-${orderNumber}`, lastRow["Amount Paid"] || '');
+        sessionStorage.setItem(`prevCarryForward-${vendor}-${orderNumber}`, lastRow["Carry Forward Amount"] || '');
+
+        // Set to state
+        setPreviousBalance(carry);
+        setPrevOrderDate(lastRow["Date"] || '');
+        setPrevOrderAmountPaid(lastRow["Amount Paid"] || '');
+        setPrevOrderNumber(lastRow["Order No"] || '');
+
+        setPrevSubTotal(lastRow["Subtotal"] || '');
+        setPrevCartage(lastRow["Cartage"] || '');
+        setPrevPrevBalance(lastRow["Prev Balance"] || '');
+        setPrevGrandTotal(lastRow["Grand Total"] || '');
+        setPrevAmountPaid(lastRow["Amount Paid"] || '');
+        setPrevCarryForward(lastRow["Carry Forward Amount"] || '');
+      } else {
+        setPreviousBalance("0.00");
+      }
+
+      // ✅ Mark fetch done
+      setIsPreviousFetched(true);
+    } catch (err) {
+      console.error("❌ Carry Forward Fetch Error:", err);
     }
+  };
 
-  }, [vendor, orderNumber, isSaved]);
+  const shouldFetch = vendor && orderNumber && !sessionStorage.getItem(`prevBalance-${vendor}-${orderNumber}`);
+  if (shouldFetch) {
+    fetchPreviousCarryForward();
+  } else {
+    setPreviousBalance(sessionStorage.getItem(`prevBalance-${vendor}-${orderNumber}`) || "0.00");
+    setIsPreviousFetched(true); // still allow restore
+  }
+}, [vendor, orderNumber, isSaved]);
 
+
+useEffect(() => {
+  if (!isPreviousFetched) return;
+
+  const prefix = `${vendor}-${orderNumber}`;
+
+  setPrevSubTotal(sessionStorage.getItem(`prevSubTotal-${prefix}`) || '');
+  setPrevCartage(sessionStorage.getItem(`prevCartage-${prefix}`) || '');
+  setPrevPrevBalance(sessionStorage.getItem(`prevPrevBalance-${prefix}`) || '');
+  setPrevGrandTotal(sessionStorage.getItem(`prevGrandTotal-${prefix}`) || '');
+  setPrevAmountPaid(sessionStorage.getItem(`prevAmountPaid-${prefix}`) || '');
+  setPrevCarryForward(sessionStorage.getItem(`prevCarryForward-${prefix}`) || '');
+
+  setPrevOrderDate(sessionStorage.getItem(`prevOrderDate-${prefix}`) || '');
+  setPrevOrderAmountPaid(sessionStorage.getItem(`prevOrderPaid-${prefix}`) || '');
+  setPrevOrderNumber(sessionStorage.getItem(`prevOrderNo-${prefix}`) || '');
+
+  const prevRows = sessionStorage.getItem(`prevRows-${prefix}`);
+  if (prevRows) {
+    try {
+      setPreviousInvoiceRows(JSON.parse(prevRows));
+    } catch (e) {
+      console.error("❌ Error parsing previous rows from sessionStorage", e);
+    }
+  }
+}, [vendor, orderNumber, isPreviousFetched]);
 
 
 
