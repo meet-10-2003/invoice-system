@@ -131,15 +131,15 @@ const FinalInvoice = () => {
   const isSeatVendor = ['x - sofa worker', 'y - sofa worker'].includes(vendor?.toLowerCase());
   const unitLabel = isMeterVendor ? ' (meters)' : isSeatVendor ? ' (seats)' : '';
 
-const formatDate = (value) => {
-  if (!value) return '';
-  const date = new Date(value);
-  if (isNaN(date.getTime())) return String(value); // fallback
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}-${month}-${year}`;
-};
+  const formatDate = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return String(value); // fallback
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
 
 
   const formatTime = (value) => {
@@ -177,78 +177,135 @@ const formatDate = (value) => {
 
 
 
-  useEffect(() => {
-    const fetchPreviousCarryForward = async () => {
-      try {
-        const res = await fetch(`https://invoice-proxy.onrender.com/get-invoices?sheet=${encodeURIComponent(vendor)}`);
-        const data = await res.json();
-
-        const allRows = Array.isArray(data)
-          ? data
-          : Array.isArray(data.invoices)
-            ? data.invoices
-            : [];
-
-        const currentOrderNum = extractOrderNumber(String(orderNumber));
-        if (isNaN(currentOrderNum)) {
-          console.log("❗ Couldn't extract valid order number from:", orderNumber);
-          return;
-        }
-
-        const previousOrderNum = currentOrderNum - 1;
-        const orderPrefix = String(orderNumber).replace(/[-\s]*\d+$/, '').trim();
-
-        const previousOrder = allRows.find(r => {
-          const rOrder = String(r?.["Order No"] || '');
-          const rNum = extractOrderNumber(rOrder);
-          const rPrefix = rOrder.replace(/[-\s]*\d+$/, '').trim();
-
-          return rNum === previousOrderNum && rPrefix === orderPrefix;
-        });
-
-        if (previousOrder) {
-          const grandTotal = parseFloat(previousOrder["Grand Total"]) || 0;
-          const paid = parseFloat(previousOrder["Amount Paid"]) || 0;
-          const carry = (grandTotal - paid).toFixed(2);
-
-          setPreviousBalance(carry);
-          sessionStorage.setItem(`prevBalance-${vendor}-${orderNumber}`, carry);
-
-          console.log(`💰 Carry Forward from ${previousOrder["Order No"]}: ₹${carry}`);
+const [isPreviousFetched, setIsPreviousFetched] = useState(false);
 
 
 
-          setPrevOrderDate(previousOrder["Date"] || '');
-          setPrevOrderAmountPaid(previousOrder["Amount Paid"] || '');
-          setPrevOrderNumber(previousOrder["Order No"] || '');
 
-          sessionStorage.setItem(`prevOrderDate-${vendor}-${orderNumber}`, previousOrder["Date"] || '');
-          sessionStorage.setItem(`prevOrderPaid-${vendor}-${orderNumber}`, previousOrder["Amount Paid"] || '');
-          sessionStorage.setItem(`prevOrderNo-${vendor}-${orderNumber}`, previousOrder["Order No"] || '');
 
-        } else {
-          setPrevOrderDate(sessionStorage.getItem(`prevOrderDate-${vendor}-${orderNumber}`) || '');
-          setPrevOrderAmountPaid(sessionStorage.getItem(`prevOrderPaid-${vendor}-${orderNumber}`) || '');
-          setPrevOrderNumber(sessionStorage.getItem(`prevOrderNo-${vendor}-${orderNumber}`) || '');
 
-          console.log("❗ No previous order found.");
-          setPreviousBalance("0.00");
-        }
-      } catch (err) {
-        console.error("❌ Carry Forward Fetch Error:", err);
+
+
+
+  const [previousInvoiceRows, setPreviousInvoiceRows] = useState([]);
+  const [prevSubTotal, setPrevSubTotal] = useState('');
+  const [prevCartage, setPrevCartage] = useState('');
+  const [prevPrevBalance, setPrevPrevBalance] = useState('');
+  const [prevGrandTotal, setPrevGrandTotal] = useState('');
+  const [prevAmountPaid, setPrevAmountPaid] = useState('');
+  const [prevCarryForward, setPrevCarryForward] = useState('');
+
+
+useEffect(() => {
+  const fetchPreviousCarryForward = async () => {
+    try {
+      const res = await fetch(`https://invoice-proxy.onrender.com/get-invoices?sheet=${encodeURIComponent(vendor)}`);
+      const data = await res.json();
+
+      const allRows = Array.isArray(data)
+        ? data
+        : Array.isArray(data.invoices)
+          ? data.invoices
+          : [];
+
+      const currentOrderNum = extractOrderNumber(String(orderNumber));
+      if (isNaN(currentOrderNum)) {
+        console.log("❗ Couldn't extract valid order number from:", orderNumber);
+        return;
       }
-    };
 
-    if (vendor && orderNumber && !sessionStorage.getItem(`prevBalance-${vendor}-${orderNumber}`)) {
-      fetchPreviousCarryForward();
-    } else {
-      setPreviousBalance(sessionStorage.getItem(`prevBalance-${vendor}-${orderNumber}`) || "0.00");
+      const previousOrderNum = currentOrderNum - 1;
+      const orderPrefix = String(orderNumber).replace(/[-\s]*\d+$/, '').trim();
+
+      const previousOrderRows = allRows.filter(r => {
+        const rOrder = String(r?.["Order No"] || '');
+        const rNum = extractOrderNumber(rOrder);
+        const rPrefix = rOrder.replace(/[-\s]*\d+$/, '').trim();
+        return rNum === previousOrderNum && rPrefix === orderPrefix;
+      });
+
+      setPreviousInvoiceRows(previousOrderRows);
+      sessionStorage.setItem(`prevRows-${vendor}-${orderNumber}`, JSON.stringify(previousOrderRows));
+
+      const lastRow = previousOrderRows[previousOrderRows.length - 1];
+
+      if (lastRow) {
+        const grandTotal = parseFloat(lastRow["Grand Total"]) || 0;
+        const paid = parseFloat(lastRow["Amount Paid"]) || 0;
+        const carry = (grandTotal - paid).toFixed(2);
+
+        // Save all summary
+        sessionStorage.setItem(`prevBalance-${vendor}-${orderNumber}`, carry);
+        sessionStorage.setItem(`prevOrderDate-${vendor}-${orderNumber}`, lastRow["Date"] || '');
+        sessionStorage.setItem(`prevOrderPaid-${vendor}-${orderNumber}`, lastRow["Amount Paid"] || '');
+        sessionStorage.setItem(`prevOrderNo-${vendor}-${orderNumber}`, lastRow["Order No"] || '');
+
+        sessionStorage.setItem(`prevSubTotal-${vendor}-${orderNumber}`, lastRow["Subtotal"] || '');
+        sessionStorage.setItem(`prevCartage-${vendor}-${orderNumber}`, lastRow["Cartage"] || '');
+        sessionStorage.setItem(`prevPrevBalance-${vendor}-${orderNumber}`, lastRow["Prev Balance"] || '');
+        sessionStorage.setItem(`prevGrandTotal-${vendor}-${orderNumber}`, lastRow["Grand Total"] || '');
+        sessionStorage.setItem(`prevAmountPaid-${vendor}-${orderNumber}`, lastRow["Amount Paid"] || '');
+        sessionStorage.setItem(`prevCarryForward-${vendor}-${orderNumber}`, lastRow["Carry Forward Amount"] || '');
+
+        // Set to state
+        setPreviousBalance(carry);
+        setPrevOrderDate(lastRow["Date"] || '');
+        setPrevOrderAmountPaid(lastRow["Amount Paid"] || '');
+        setPrevOrderNumber(lastRow["Order No"] || '');
+
+        setPrevSubTotal(lastRow["Subtotal"] || '');
+        setPrevCartage(lastRow["Cartage"] || '');
+        setPrevPrevBalance(lastRow["Prev Balance"] || '');
+        setPrevGrandTotal(lastRow["Grand Total"] || '');
+        setPrevAmountPaid(lastRow["Amount Paid"] || '');
+        setPrevCarryForward(lastRow["Carry Forward Amount"] || '');
+      } else {
+        setPreviousBalance("0.00");
+      }
+
+      // ✅ Mark fetch done
+      setIsPreviousFetched(true);
+    } catch (err) {
+      console.error("❌ Carry Forward Fetch Error:", err);
     }
+  };
 
-  }, [vendor, orderNumber, isSaved]);
+  const shouldFetch = vendor && orderNumber && !sessionStorage.getItem(`prevBalance-${vendor}-${orderNumber}`);
+  if (shouldFetch) {
+    fetchPreviousCarryForward();
+  } else {
+    setPreviousBalance(sessionStorage.getItem(`prevBalance-${vendor}-${orderNumber}`) || "0.00");
+    setIsPreviousFetched(true); // still allow restore
+  }
+}, [vendor, orderNumber, isSaved]);
 
 
 
+useEffect(() => {
+  if (!isPreviousFetched) return;
+
+  const prefix = `${vendor}-${orderNumber}`;
+
+  setPrevSubTotal(sessionStorage.getItem(`prevSubTotal-${prefix}`) || '');
+  setPrevCartage(sessionStorage.getItem(`prevCartage-${prefix}`) || '');
+  setPrevPrevBalance(sessionStorage.getItem(`prevPrevBalance-${prefix}`) || '');
+  setPrevGrandTotal(sessionStorage.getItem(`prevGrandTotal-${prefix}`) || '');
+  setPrevAmountPaid(sessionStorage.getItem(`prevAmountPaid-${prefix}`) || '');
+  setPrevCarryForward(sessionStorage.getItem(`prevCarryForward-${prefix}`) || '');
+
+  setPrevOrderDate(sessionStorage.getItem(`prevOrderDate-${prefix}`) || '');
+  setPrevOrderAmountPaid(sessionStorage.getItem(`prevOrderPaid-${prefix}`) || '');
+  setPrevOrderNumber(sessionStorage.getItem(`prevOrderNo-${prefix}`) || '');
+
+  const prevRows = sessionStorage.getItem(`prevRows-${prefix}`);
+  if (prevRows) {
+    try {
+      setPreviousInvoiceRows(JSON.parse(prevRows));
+    } catch (e) {
+      console.error("❌ Error parsing previous rows from sessionStorage", e);
+    }
+  }
+}, [vendor, orderNumber, isPreviousFetched]);
 
 
 
@@ -452,6 +509,16 @@ const formatDate = (value) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
   return (
     <div className="px-6 py-8 bg-white min-h-screen">
       <div className="mb-6">
@@ -569,7 +636,7 @@ const formatDate = (value) => {
                     <img src={row.image} alt={row.model} className="w-24 h-24 object-contain transform transition-all duration-500 scale-[0.9] hover:scale-[1.1] z-10 cursor-pointer" />
                   )}
                 </td>
-                <td className="px-4 py-2 font-[700] text-lg">{formatDate(row.date)}</td>  
+                <td className="px-4 py-2 font-[700] text-lg">{formatDate(row.date)}</td>
                 <td className="px-4 py-2 font-[700] text-lg">{row.clientName}</td>
                 <td className="px-4 py-2 font-[700] text-lg">{row.challan}</td>
                 <td className="px-4 py-2 font-[700] text-lg">{row.totalQuantity}</td>
@@ -704,6 +771,86 @@ const formatDate = (value) => {
           onClose={() => setModalContent(null)}
         />
       )}
+
+
+
+
+
+      {previousInvoiceRows.length > 0 && (
+        <div className="mt-10 border-t pt-6">
+          <h2 className="text-xl font-bold uppercase mb-4 text-style heading-2">
+            Previous Order of {vendor} ({prevOrderNumber})
+          </h2>
+
+          {/* 🟦 Added Summary Section */}
+
+          <div className="bg-gray-100 rounded mt-4 shadow-sm max-w-md ml-auto px-4 py-3 mb-6 text-sm space-y-2 font-semibold">
+            <div className="flex justify-between">
+              <span>Sub Total</span>
+              <span>₹{parseFloat(prevSubTotal || 0).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Cartage</span>
+              <span>₹{parseFloat(prevCartage || 0).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Previous Balance</span>
+              <span>₹{parseFloat(prevPrevBalance || 0).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Grand Total</span>
+              <span>₹{parseFloat(prevGrandTotal || 0).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Amount Paid</span>
+              <span>₹{parseFloat(prevAmountPaid || 0).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-blue-700">
+              <span>Carry Forward Amount</span>
+              <span>₹{parseFloat(prevCarryForward || 0).toFixed(2)}</span>
+            </div>
+          </div>
+
+
+          {/* Table */}
+          <table className="min-w-full border shadow-md rounded table-style">
+            <thead className="bg-gray-700 text-white">
+              <tr>
+                {['Model', 'Image', 'Client Name', 'Challan No', 'Qty Ordered', 'Qty Received', 'Price', 'Total'].map((head) => (
+                  <th key={head} className="px-4 py-2 text-left text-md">{head}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {previousInvoiceRows.map((item, index) => (
+                <tr key={index} className="border-t text-sm">
+                  <td className="px-4 py-2 font-semibold uppercase">{item.Model}</td>
+                  <td className="px-4 py-2">
+                    {item.Image ? (
+                      <img src={item.Image} alt="model" className="h-16 w-16 object-contain" />
+                    ) : 'N/A'}
+                  </td>
+                  <td className="px-4 py-2">{item["Client Name"]}</td>
+                  <td className="px-4 py-2">{item["Challan No"]}</td>
+                  <td className="px-4 py-2">{item["Qty Ordered"]}</td>
+                  <td className="px-4 py-2">{item["Qty Received"]}</td>
+                  <td className="px-4 py-2">₹{item.Price}</td>
+                  <td className="px-4 py-2">₹{item.Total}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+
+
+
+        </div>
+      )}
+
+
+
+
+
 
     </div>
   );
