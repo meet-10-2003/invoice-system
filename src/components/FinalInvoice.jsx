@@ -504,7 +504,7 @@ const formatDate = (value) => {
             href="https://docs.google.com/spreadsheets/d/1Lgw6pYZt9jDDXTrU6mLL-i7Qi5KaMooowxExai1pgCw/edit?gid=0"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-purple-600 button-style text-white uppercase font-semibold px-4 py-2 rounded shadow hover:bg-purple-700"
+            className="bg-purple-900 button-style text-white uppercase font-semibold px-4 py-2 rounded shadow hover:bg-purple-700"
           >
             View Sheet
           </a>
