@@ -182,6 +182,7 @@ const [isPreviousFetched, setIsPreviousFetched] = useState(false);
   const [prevCartage, setPrevCartage] = useState('');
   const [prevPrevBalance, setPrevPrevBalance] = useState('');
   const [prevGrandTotal, setPrevGrandTotal] = useState('');
+  const [prevAmountPaid, setPrevAmountPaid] = useState('');
   const [prevCarryForward, setPrevCarryForward] = useState('');
 
 
