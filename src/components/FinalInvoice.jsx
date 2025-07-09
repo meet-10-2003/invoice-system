@@ -176,7 +176,13 @@ const formatDate = (value) => {
 
 
 const [isPreviousFetched, setIsPreviousFetched] = useState(false);
-const [previousInvoiceRows, setPreviousInvoiceRows] = useState([]);
+
+  const [previousInvoiceRows, setPreviousInvoiceRows] = useState([]);
+  const [prevSubTotal, setPrevSubTotal] = useState('');
+  const [prevCartage, setPrevCartage] = useState('');
+  const [prevPrevBalance, setPrevPrevBalance] = useState('');
+  const [prevGrandTotal, setPrevGrandTotal] = useState('');
+  const [prevCarryForward, setPrevCarryForward] = useState('');
 
 
 useEffect(() => {
