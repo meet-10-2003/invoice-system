@@ -7,7 +7,18 @@ const PORT = 3001;
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3j7JF8tSVzLKi5lorbaU9yO-jf9UbTtCyuJ_urzNEwsBOmsdf42Rs8n2JcfVx19uy/exec';
 
 app.use(cors());
-app.use(express.json());
+
+// 🔧 Manually set fallback CORS headers (important for Render quirks)
+// ✅ First thing: CORS headers manually
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Or restrict to your Vercel domain
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(200); // Handle preflight
+  next();
+});
+
+app.use(cors()); // Optional, for safety
 
 /**
  * ✅ Save invoice to Google Sheet
