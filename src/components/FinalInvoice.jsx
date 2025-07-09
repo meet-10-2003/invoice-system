@@ -182,7 +182,7 @@ const [previousInvoiceRows, setPreviousInvoiceRows] = useState([]);
 useEffect(() => {
   const fetchPreviousCarryForward = async () => {
     try {
-      const res = await fetch(`http://localhost:3001/get-invoices?sheet=${encodeURIComponent(vendor)}`);
+      const res = await fetch(`https://invoice-proxy.onrender.com/get-invoices?sheet=${encodeURIComponent(vendor)}`);
       const data = await res.json();
 
       const allRows = Array.isArray(data)
