@@ -218,5 +218,5 @@ app.post('/notify-transition', (req, res) => {
  * ✅ Start the server
  */
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at https://invoice-proxy.onrender.com:${PORT}`);
+  console.log(`🚀 Server running at https://invoice-proxy.onrender.com`);
 });
