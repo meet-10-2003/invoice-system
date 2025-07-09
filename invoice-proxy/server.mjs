@@ -77,8 +77,12 @@ app.post('/delete-invoice', async (req, res) => {
 
   try {
     const response = await fetch(
-      `${SCRIPT_URL}?mode=delete&Order%20No=${encodeURIComponent(orderNo)}&vendor=${encodeURIComponent(vendor)}`
+      `${SCRIPT_URL}?mode=delete&${encodeURIComponent('Order No')}=${encodeURIComponent(orderNo)}&vendor=${encodeURIComponent(vendor)}`
+      
     );
+
+
+
 
     const result = await response.json();
     if (result.success) {
