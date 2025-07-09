@@ -176,6 +176,7 @@ const formatDate = (value) => {
 
 
 const [isPreviousFetched, setIsPreviousFetched] = useState(false);
+const [previousInvoiceRows, setPreviousInvoiceRows] = useState([]);
 
 
 useEffect(() => {
