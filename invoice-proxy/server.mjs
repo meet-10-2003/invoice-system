@@ -4,19 +4,10 @@ import cors from 'cors';
 const app = express();
 const PORT = 3001;
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3j7JF8tSVzLKi5lorbaU9yO-jf9UbTtCyuJ_urzNEwsBOmsdf42Rs8n2JcfVx19uy/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyFMsOEmoq7UXPLUOaa05JiCAKiIvQAGqgl-O_6NHmnxNF3KPbsfj0iMlY92p6pp-ao/exec';
 
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://invoice-system-mu.vercel.app'); // Or use '*' for dev
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
-  // Respond to preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
+app.use(cors());
+app.use(express.json());
 
 /**
  * ✅ Save invoice to Google Sheet
@@ -91,52 +82,6 @@ app.post('/delete-invoice', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error while deleting' });
   }
 });
-
-
-
-
-/**
- * ✅ Get next order number for a vendor
- */
-app.get('/last-order-number', async (req, res) => {
-  const vendor = req.query.vendor;
-  const sheetName = vendor?.trim();
-
-  if (!vendor) return res.status(400).json({ error: 'Vendor is required' });
-
-  try {
-    const response = await fetch(
-      `https://script.google.com/macros/s/AKfycbyGMbjwT7oKFxmjorHQybfiDnbjZVySzmxafhrbMaTzO1h7WFfZTxK1dwUIKWzN4vV1/exec?mode=get-invoices&sheet=${encodeURIComponent(sheetName)}`
-    );
-    const data = await response.json();
-
-    // 🔤 Get only the FIRST word (e.g., "ANIL" from "ANIL - WOOD WORKER")
-    const prefix = vendor.trim().split(' ')[0].toUpperCase();
-
-    // 🔍 Extract and parse order numbers
-    const orderNumbers = data
-      .map(row => String(row["Order No"] || '').trim())
-      .filter(order => order.toUpperCase().startsWith(prefix + ' -'))
-      .map(order => {
-        const parts = order.split(' - ');
-        return parts.length > 1 ? parseInt(parts[1], 10) : 0;
-      })
-      .filter(num => !isNaN(num));
-
-    const max = orderNumbers.length ? Math.max(...orderNumbers) : 0;
-    const nextOrderNo = `${prefix} - ${String(max + 1).padStart(2, '0')}`;
-
-    res.json({ nextOrderNo });
-  } catch (err) {
-    console.error('❌ Error in /last-order-number:', err.message);
-    res.status(500).json({ nextOrderNo: '' });
-  }
-});
-
-
-
-
-
 
 
 
