@@ -6,7 +6,7 @@ const app = express();
 const PORT = 3001;
 
 // 🔗 Google Apps Script URLs
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3j7JF8tSVzLKi5lorbaU9yO-jf9UbTtCyuJ_urzNEwsBOmsdf42Rs8n2JcfVx19uy/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJctj8Ihd6FwQJ6qjg-Me2J0AJkSRwSJWwltw18CDY9cldhlnIzmXJx4X6HC8j5F1c/exec';
 const JOB_SHEET_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx1u6Z2lLkJoUo8HlVAKrbBK197VO-W-uSohS7hFShY_UBFZK5Fcu3P7qja-rUf8b4/exec';
 
 const allowedOrigins = ['https://invoice-system-mu.vercel.app'];
