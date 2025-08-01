@@ -15,6 +15,13 @@ const FinalInvoice = () => {
     return stored !== null ? stored : '';
   });
 
+
+
+
+
+
+  
+
   const [previousBalance, setPreviousBalance] = useState(() => {
     const stored = sessionStorage.getItem(`prevBalance-${vendor}-${orderNumber}`);
     return stored !== null ? stored : 0;

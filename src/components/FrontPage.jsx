@@ -9,6 +9,9 @@ const FrontPage = () => {
 
     const fullText = 'WELCOME TO METAL AVENUES SOFTWARE';
 
+
+
+    
     const handleClick = () => {
         setIsOpen(true);
         setTimeout(() => {
